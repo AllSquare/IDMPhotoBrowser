@@ -180,29 +180,40 @@
 	if (xScale > 1 && yScale > 1) {
 		//minScale = 1.0;
 	}
-    
-//	// Calculate Max
-//	CGFloat maxScale = 4.0; // Allow double scale
-//    // on high resolution screens we have double the pixel density, so we will be seeing every pixel if we limit the
-//    // maximum zoom scale to 0.5.
-//	if ([UIScreen instancesRespondToSelector:@selector(scale)]) {
-//		maxScale = maxScale / [[UIScreen mainScreen] scale];
-//		
-//		if (maxScale < minScale) {
-//			maxScale = minScale * 2;
-//		}
-//	}
-//
-    
-    CGFloat maxScale = minScale * 2.3;
+
+	// Calculate Max
+	CGFloat maxScale = 4.0; // Allow double scale
+    // on high resolution screens we have double the pixel density, so we will be seeing every pixel if we limit the
+    // maximum zoom scale to 0.5.
+	if ([UIScreen instancesRespondToSelector:@selector(scale)]) {
+		maxScale = maxScale / [[UIScreen mainScreen] scale];
+
+		if (maxScale < minScale) {
+			maxScale = minScale * 2;
+		}
+	}
+
+	// Calculate Max Scale Of Double Tap
+	CGFloat maxDoubleTapZoomScale = 4.0 * minScale; // Allow double scale
+    // on high resolution screens we have double the pixel density, so we will be seeing every pixel if we limit the
+    // maximum zoom scale to 0.5.
+	if ([UIScreen instancesRespondToSelector:@selector(scale)]) {
+		maxDoubleTapZoomScale = maxDoubleTapZoomScale / [[UIScreen mainScreen] scale];
+
+	if (maxDoubleTapZoomScale < minScale) {
+		maxDoubleTapZoomScale = minScale * 2;
+        }
+    }
+
 	// Set
 	self.maximumZoomScale = maxScale;
 	self.minimumZoomScale = minScale;
 	self.zoomScale = minScale;
-    
+	self.maximumDoubleTapZoomScale = maxDoubleTapZoomScale;
+
 	// Reset position
 	_photoImageView.frame = CGRectMake(0, 0, _photoImageView.frame.size.width, _photoImageView.frame.size.height);
-	[self setNeedsLayout];    
+	[self setNeedsLayout];
 }
 
 #pragma mark - Layout
@@ -285,6 +296,9 @@
 	} else {
 		
 		// Zoom in
+		CGSize targetSize = CGSizeMake(self.frame.size.width / self.maximumDoubleTapZoomScale, self.frame.size.height / self.maximumDoubleTapZoomScale);
+		CGPoint targetPoint = CGPointMake(touchPoint.x - targetSize.width / 2, touchPoint.y - targetSize.height / 2);
+
 		[self zoomToRect:CGRectMake(touchPoint.x, touchPoint.y, 1, 1) animated:YES];
 		
 	}
@@ -294,7 +308,7 @@
 }
 
 // Image View
-- (void)imageView:(UIImageView *)imageView singleTapDetected:(UITouch *)touch { 
+- (void)imageView:(UIImageView *)imageView singleTapDetected:(UITouch *)touch {
     [self handleSingleTap:[touch locationInView:imageView]];
 }
 - (void)imageView:(UIImageView *)imageView doubleTapDetected:(UITouch *)touch {
